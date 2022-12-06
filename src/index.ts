@@ -1,6 +1,6 @@
-import {ApolloServer} from "apollo-server"
-import {typeDefs} from "./schema"
-import {Query} from "./resolvers"
+import { ApolloServer } from "apollo-server"
+import { typeDefs } from "./schema"
+import { Query } from "./resolvers"
 
 const server = new ApolloServer({
     typeDefs,
@@ -9,6 +9,9 @@ const server = new ApolloServer({
     },
 })
 
-server.listen().then(({url}) => {
-    console.log("🚀 ~ Server is running on: ", url)
-})
+server
+    .listen()
+    .then(({ url }) => {
+        console.log("🚀 ~ Server is running on: ", url)
+    })
+    .catch(console.error)
