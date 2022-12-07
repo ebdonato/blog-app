@@ -1,9 +1,18 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IContext } from "../context"
 import { Post } from "@prisma/client"
 
+interface IPost {
+    title?: string
+    content?: string
+}
+
 interface IPostCreateArgs {
-    title: string
-    content: string
+    post: IPost
+}
+
+interface IPostUpdateArgs extends IPostCreateArgs {
+    postId: string
 }
 
 interface IUserError {
@@ -18,29 +27,22 @@ interface IPostPayload {
 export const Mutation = {
     postCreate: async (
         _: undefined,
-        { title, content }: IPostCreateArgs,
+        { post: { title = "", content = "" } }: IPostCreateArgs,
         { prisma }: IContext
     ): Promise<IPostPayload> => {
         const userErrors: IUserError[] = []
 
-        if (title === "") {
+        !title &&
             userErrors.push({
                 message: "You must be provide a title",
             })
-        }
 
-        if (content === "") {
+        !content &&
             userErrors.push({
                 message: "You must be provide a content",
             })
-        }
 
-        if (userErrors.length > 0) {
-            console.log("🚀 ~ file: Mutation.ts:39 ~ userErrors", {
-                userErrors,
-                post: null,
-            })
-
+        if (userErrors.length) {
             return {
                 userErrors,
                 post: null,
@@ -54,7 +56,97 @@ export const Mutation = {
                 authorId: 1,
             },
         })
-        console.log("🚀 ~ file: Mutation.ts:57 ~ post", post)
+
+        return {
+            userErrors: [],
+            post,
+        }
+    },
+    postUpdate: async (
+        _: undefined,
+        { postId, post: { title = "", content = "" } }: IPostUpdateArgs,
+        { prisma }: IContext
+    ): Promise<IPostPayload> => {
+        const userErrors: IUserError[] = []
+
+        if (!title && !content) {
+            userErrors.push({
+                message: "You must be provide at least one field to update",
+            })
+        }
+
+        const existingPost = await prisma.post.findUnique({
+            where: {
+                id: Number(postId),
+            },
+        })
+
+        if (!existingPost) {
+            userErrors.push({
+                message: "Post does not exist",
+            })
+        }
+
+        if (userErrors.length) {
+            return {
+                userErrors,
+                post: null,
+            }
+        }
+
+        const payload: IPost = {
+            title,
+            content,
+        }
+
+        if (!title) delete payload.title
+        if (!content) delete payload.content
+
+        const post = await prisma.post.update({
+            where: {
+                id: Number(postId),
+            },
+            data: {
+                ...payload,
+            },
+        })
+
+        return {
+            userErrors: [],
+            post,
+        }
+    },
+    postDelete: async (
+        _: undefined,
+        { postId }: { postId: string },
+        { prisma }: IContext
+    ): Promise<IPostPayload> => {
+        const userErrors: IUserError[] = []
+
+        const existingPost = await prisma.post.findUnique({
+            where: {
+                id: Number(postId),
+            },
+        })
+
+        if (!existingPost) {
+            userErrors.push({
+                message: "Post does not exist",
+            })
+        }
+
+        if (userErrors.length) {
+            return {
+                userErrors,
+                post: null,
+            }
+        }
+
+        const post = await prisma.post.delete({
+            where: {
+                id: Number(postId),
+            },
+        })
 
         return {
             userErrors: [],
