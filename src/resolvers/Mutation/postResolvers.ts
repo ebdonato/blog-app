@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { IContext } from "../context"
 import { Post } from "@prisma/client"
+import { IContext } from "../../context"
 
 interface IPost {
     title?: string
@@ -24,12 +24,21 @@ interface IPostPayload {
     post: Post | null
 }
 
-export const Mutation = {
+export const postResolvers = {
     postCreate: async (
         _: undefined,
         { post: { title = "", content = "" } }: IPostCreateArgs,
-        { prisma }: IContext
+        { prisma, userInfo }: IContext
     ): Promise<IPostPayload> => {
+        if (!userInfo) {
+            return {
+                userErrors: [
+                    { message: "Forbidden access (not authenticated)" },
+                ],
+                post: null,
+            }
+        }
+
         const userErrors: IUserError[] = []
 
         !title &&
@@ -53,7 +62,7 @@ export const Mutation = {
             data: {
                 title,
                 content,
-                authorId: 1,
+                authorId: userInfo.userId,
             },
         })
 
@@ -65,7 +74,7 @@ export const Mutation = {
     postUpdate: async (
         _: undefined,
         { postId, post: { title = "", content = "" } }: IPostUpdateArgs,
-        { prisma }: IContext
+        { prisma, userInfo }: IContext
     ): Promise<IPostPayload> => {
         const userErrors: IUserError[] = []
 
@@ -84,6 +93,12 @@ export const Mutation = {
         if (!existingPost) {
             userErrors.push({
                 message: "Post does not exist",
+            })
+        }
+
+        if (existingPost?.authorId !== userInfo.userId) {
+            userErrors.push({
+                message: "Post does not belong to user",
             })
         }
 
@@ -119,7 +134,7 @@ export const Mutation = {
     postDelete: async (
         _: undefined,
         { postId }: { postId: string },
-        { prisma }: IContext
+        { prisma, userInfo }: IContext
     ): Promise<IPostPayload> => {
         const userErrors: IUserError[] = []
 
@@ -135,6 +150,12 @@ export const Mutation = {
             })
         }
 
+        if (existingPost?.authorId !== userInfo.userId) {
+            userErrors.push({
+                message: "Post does not belong to user",
+            })
+        }
+
         if (userErrors.length) {
             return {
                 userErrors,
@@ -145,6 +166,52 @@ export const Mutation = {
         const post = await prisma.post.delete({
             where: {
                 id: Number(postId),
+            },
+        })
+
+        return {
+            userErrors: [],
+            post,
+        }
+    },
+    postToggle: async (
+        _: undefined,
+        { postId }: { postId: string },
+        { prisma, userInfo }: IContext
+    ): Promise<IPostPayload> => {
+        const userErrors: IUserError[] = []
+
+        const existingPost = await prisma.post.findUnique({
+            where: {
+                id: Number(postId),
+            },
+        })
+
+        if (!existingPost) {
+            userErrors.push({
+                message: "Post does not exist",
+            })
+        }
+
+        if (existingPost?.authorId !== userInfo.userId) {
+            userErrors.push({
+                message: "Post does not belong to user",
+            })
+        }
+
+        if (userErrors.length) {
+            return {
+                userErrors,
+                post: null,
+            }
+        }
+
+        const post = await prisma.post.update({
+            where: {
+                id: Number(postId),
+            },
+            data: {
+                published: !existingPost?.published,
             },
         })
 
