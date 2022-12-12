@@ -4,7 +4,7 @@ dotenv.config()
 
 import { ApolloServer } from "apollo-server"
 import { typeDefs } from "./schema"
-import { Query, Mutation } from "./resolvers"
+import { Query, Mutation, Profile, Post, User } from "./resolvers"
 import { PrismaClient } from "@prisma/client"
 import { getUserFromToken } from "./utils/getUserFromToken"
 
@@ -15,6 +15,9 @@ const server = new ApolloServer({
     resolvers: {
         Query,
         Mutation,
+        Profile,
+        Post,
+        User,
     },
     context: ({ req }) => {
         const userInfo = getUserFromToken(req.headers.authorization)
