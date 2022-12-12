@@ -3,5 +3,5 @@ import { IUserInfo } from "./utils/getUserFromToken"
 
 export interface IContext {
     prisma: PrismaClient
-    userInfo: IUserInfo
+    userInfo: IUserInfo | null
 }

@@ -11,7 +11,7 @@ export const User = {
         _: undefined,
         { prisma, userInfo }: IContext
     ) => {
-        const isOwnProfile = id === userInfo.userId
+        const isOwnProfile = id === userInfo?.userId
 
         if (isOwnProfile) {
             return prisma.post.findMany({
