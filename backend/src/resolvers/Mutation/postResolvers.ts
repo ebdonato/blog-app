@@ -96,7 +96,7 @@ export const postResolvers = {
             })
         }
 
-        if (existingPost?.authorId !== userInfo.userId) {
+        if (existingPost?.authorId !== userInfo?.userId) {
             userErrors.push({
                 message: "Post does not belong to user",
             })
@@ -150,7 +150,7 @@ export const postResolvers = {
             })
         }
 
-        if (existingPost?.authorId !== userInfo.userId) {
+        if (existingPost?.authorId !== userInfo?.userId) {
             userErrors.push({
                 message: "Post does not belong to user",
             })
@@ -193,7 +193,7 @@ export const postResolvers = {
             })
         }
 
-        if (existingPost?.authorId !== userInfo.userId) {
+        if (existingPost?.authorId !== userInfo?.userId) {
             userErrors.push({
                 message: "Post does not belong to user",
             })

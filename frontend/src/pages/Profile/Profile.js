@@ -9,6 +9,7 @@ const GET_PROFILE = gql`
         profile(userId: $userId) {
             id
             bio
+            isMyProfile
             user {
                 id
                 name
@@ -17,6 +18,7 @@ const GET_PROFILE = gql`
                     title
                     content
                     createdAt
+                    published
                 }
             }
         }
@@ -38,9 +40,10 @@ export default function Profile() {
 
     const {
         profile: {
-            id: profileId,
+            // id: profileId,
             bio,
             user: {name, posts},
+            isMyProfile,
         },
     } = data
 
@@ -57,11 +60,11 @@ export default function Profile() {
                     <h1>{name}</h1>
                     <p>{bio}</p>
                 </div>
-                <div>{"profile" ? <AddPostModal /> : null}</div>
+                <div>{isMyProfile ? <AddPostModal /> : null}</div>
             </div>
             <div>
-                {posts.map(({id, title, content, createdAt: date}) => (
-                    <Post {...{title, content, date, id}} user={name} key={id} />
+                {posts.map(({id, title, content, createdAt: date, published}) => (
+                    <Post {...{title, content, date, id, published, isMyProfile}} user={name} key={id} />
                 ))}
             </div>
         </div>
